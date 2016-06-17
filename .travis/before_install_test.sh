@@ -1,7 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -ev
 
-if [ "${TRAVIS_PHP_VERSION}" != "hhvm" ]; then
+if [[ ! ${TRAVIS_PHP_VERSION} = hhvm* ]]; then
     mv "$HOME/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini" /tmp
     echo "memory_limit=3072M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
