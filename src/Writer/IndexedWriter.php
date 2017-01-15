@@ -17,9 +17,9 @@ namespace Exporter\Writer;
  */
 class IndexedWriter implements IndexedWriterInterface
 {
-    private $index = 0;
+    protected $index = 0;
 
-    private $writer;
+    protected $writer;
 
     public function __construct(WriterInterface $writer)
     {

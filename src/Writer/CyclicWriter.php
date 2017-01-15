@@ -17,13 +17,13 @@ namespace Exporter\Writer;
  */
 abstract class CyclicWriter implements CyclicWriterInterface
 {
-    private $cycleIndex = 0;
+    protected $cycleIndex = 0;
 
-    private $writer;
+    protected $writer;
 
-    private $itemsPerCycle;
+    protected $itemsPerCycle;
 
-    private $isCyclic;
+    protected $isCyclic;
 
     public function __construct(IndexedWriterInterface $writer, $itemsPerCycle = 0)
     {

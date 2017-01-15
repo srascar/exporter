@@ -20,9 +20,9 @@ use Exporter\Exception\SkipableException;
 
 class ErrorAllowedWriter implements ErrorAllowedWriterInterface
 {
-    private $errors;
+    protected $errors;
 
-    private $writer;
+    protected $writer;
 
     public function __construct(WriterInterface $writer)
     {
