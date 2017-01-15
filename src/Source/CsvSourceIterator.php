@@ -16,7 +16,7 @@ namespace Exporter\Source;
  *
  * @author Vincent Touzet <vincent.touzet@gmail.com>
  */
-class CsvSourceIterator implements SourceIteratorInterface
+class CsvSourceIterator implements SeekableSourceIteratorInterface
 {
     /**
      * @var string
@@ -24,7 +24,7 @@ class CsvSourceIterator implements SourceIteratorInterface
     protected $filename = null;
 
     /**
-     * @var resource
+     * @var \SplFileObject
      */
     protected $file = null;
 
@@ -105,15 +105,28 @@ class CsvSourceIterator implements SourceIteratorInterface
      */
     public function next()
     {
-        $line = fgetcsv($this->file, 0, $this->delimiter, $this->enclosure, $this->escape);
+        $this->initializeRead();
+        $line = $this->file->fgetcsv();
+
+        if (false === $line) {
+            throw new \RuntimeException(sprintf('An error occurred while reading the csv %s.', $this->file->getRealPath()));
+        }
+
         $this->currentLine = $line;
-        ++$this->position;
-        if ($this->hasHeaders && is_array($line)) {
-            $data = array();
-            foreach ($line as $key => $value) {
-                $data[$this->columns[$key]] = $value;
+        $this->position = $this->file->key();
+
+        if ($this->hasHeaders) {
+            if ($line === array(null) || $line === null) {
+                $this->currentLine =  null;
+
+                return;
             }
-            $this->currentLine = $data;
+
+            if (count($this->columns) !== count($line)) {
+                $this->invalidColumnCount($line);
+            }
+
+            $this->currentLine = array_combine($this->columns, $line);;
         }
     }
 
@@ -122,20 +135,23 @@ class CsvSourceIterator implements SourceIteratorInterface
      */
     public function rewind()
     {
-        $this->file = fopen($this->filename, 'r');
-        $this->position = 0;
-        $line = fgetcsv($this->file, 0, $this->delimiter, $this->enclosure, $this->escape);
-        if ($this->hasHeaders) {
-            $this->columns = $line;
-            $line = fgetcsv($this->file, 0, $this->delimiter, $this->enclosure, $this->escape);
+        $this->initializeRead();
+
+        if ($this->position !== 1) {
+            $this->seek(1);
         }
-        $this->currentLine = $line;
-        if ($this->hasHeaders && is_array($line)) {
-            $data = array();
-            foreach ($line as $key => $value) {
-                $data[$this->columns[$key]] = $value;
-            }
-            $this->currentLine = $data;
+
+        $this->next();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function seek($position)
+    {
+        if ($this->file instanceof \SplFileObject) {
+            $this->file->seek($position);
+            $this->position = $this->file->key();
         }
     }
 
@@ -145,13 +161,32 @@ class CsvSourceIterator implements SourceIteratorInterface
     public function valid()
     {
         if (!is_array($this->currentLine)) {
-            if (is_resource($this->file)) {
-                fclose($this->file);
-            }
-
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Initialize read process setting CSV options
+     * and settings field names. (Assuming that first line is column name)
+     */
+    protected function initializeRead()
+    {
+        if (!$this->file) {
+            $this->file = new \SplFileObject($this->filename);
+            $this->file->setFlags(
+                \SplFileObject::READ_CSV |
+                \SplFileObject::READ_AHEAD |
+                \SplFileObject::SKIP_EMPTY |
+                \SplFileObject::DROP_NEW_LINE
+            );
+            $this->file->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
+
+            if ($this->hasHeaders) {
+                $this->columns = $this->file->fgetcsv();
+                $this->position = $this->file->key();
+            }
+        }
     }
 }
