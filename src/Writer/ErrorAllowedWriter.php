@@ -47,7 +47,10 @@ class ErrorAllowedWriter implements ErrorAllowedWriterInterface
         try {
             $this->writer->write($data);
         } catch (SkipableException $skippedException) {
-            $this->errors[] = $data;
+            $this->errors[] = [
+                'data'      => $data,
+                'exception' => $skippedException,
+            ];
         }
     }
 

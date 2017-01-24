@@ -105,29 +105,8 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
      */
     public function next()
     {
-        $this->initializeRead();
-        $line = $this->file->fgetcsv();
-
-        if (false === $line) {
-            throw new \RuntimeException(sprintf('An error occurred while reading the csv %s.', $this->file->getRealPath()));
-        }
-
-        $this->currentLine = $line;
-        $this->position = $this->file->key();
-
-        if ($this->hasHeaders) {
-            if ($line === array(null) || $line === null) {
-                $this->currentLine =  null;
-
-                return;
-            }
-
-            if (count($this->columns) !== count($line)) {
-                $this->invalidColumnCount($line);
-            }
-
-            $this->currentLine = array_combine($this->columns, $line);;
-        }
+        $this->currentLine = $this->getNextLine();
+        ++$this->position;
     }
 
     /**
@@ -136,12 +115,7 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
     public function rewind()
     {
         $this->initializeRead();
-
-        if ($this->position !== 1) {
-            $this->seek(1);
-        }
-
-        $this->next();
+        $this->currentLine = $this->getNextLine();
     }
 
     /**
@@ -150,8 +124,8 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
     public function seek($position)
     {
         if ($this->file instanceof \SplFileObject) {
-            $this->file->seek($position);
-            $this->position = $this->file->key();
+            $this->file->seek($this->hasHeaders ? ($position + 1) : $position);
+            $this->position = $position;
         }
     }
 
@@ -173,20 +147,50 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
      */
     protected function initializeRead()
     {
-        if (!$this->file) {
-            $this->file = new \SplFileObject($this->filename);
-            $this->file->setFlags(
-                \SplFileObject::READ_CSV |
-                \SplFileObject::READ_AHEAD |
-                \SplFileObject::SKIP_EMPTY |
-                \SplFileObject::DROP_NEW_LINE
-            );
-            $this->file->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
+        $this->file = new \SplFileObject($this->filename);
+        $this->file->setFlags(
+            \SplFileObject::READ_CSV |
+            \SplFileObject::READ_AHEAD |
+            \SplFileObject::SKIP_EMPTY |
+            \SplFileObject::DROP_NEW_LINE
+        );
+        $this->file->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
 
-            if ($this->hasHeaders) {
-                $this->columns = $this->file->fgetcsv();
-                $this->position = $this->file->key();
-            }
+        if ($this->hasHeaders) {
+            $this->columns  = $this->file->fgetcsv();
+            $this->position = 0;
         }
+    }
+
+    /**
+     * @return array|void
+     */
+    protected function getNextLine()
+    {
+        $line = $this->file->fgetcsv();
+
+        if (false === $line) {
+            throw new \RuntimeException(sprintf('An error occurred while reading the csv %s.', $this->file->getRealPath()));
+        }
+
+        if ($this->hasHeaders) {
+            if ($line === array(null) || $line === null) {
+                $this->currentLine =  null;
+
+                return;
+            }
+
+            if (count($this->columns) !== count($line)) {
+                throw new \RuntimeException(sprintf('Invalid column count at line %s. Expected %d; Got %d.',
+                    $this->position,
+                    count($this->columns),
+                    count($line)
+                ));
+            }
+
+            $line = array_combine($this->columns, $line);
+        }
+
+        return $line;
     }
 }

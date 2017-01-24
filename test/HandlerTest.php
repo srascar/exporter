@@ -22,7 +22,6 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
         $writer->expects($this->once())->method('open');
         $writer->expects($this->once())->method('close');
 
-        $exporter = new Handler($source, $writer);
-        $exporter->export();
+        Handler::export($source, $writer);
     }
 }
