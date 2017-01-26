@@ -11,22 +11,22 @@
 
 namespace Exporter;
 
-use Exporter\Exception\SkipableException;
-use Exporter\Source\SeekableSourceIteratorInterface;
-use Exporter\Writer\ErrorAllowedWriterInterface;
+use Exporter\Exception\SkippableException;
+use Exporter\Interfaces\RecoverInterface;
+use Exporter\Source\SourceIteratorInterface;
+use Exporter\Writer\WriterInterface;
 
 class ContinuousHandler
 {
-    public static function export(SeekableSourceIteratorInterface $source, ErrorAllowedWriterInterface $writer)
+    public static function export(SourceIteratorInterface $source, WriterInterface $writer, RecoverInterface $recoverService)
     {
         $writer->open();
 
         foreach ($source as $data) {
             try {
                 $writer->write($data);
-            } catch (SkipableException $exception) {
-                $writer->recover();
-                $source->seek($writer->getLastValidIndex());
+            } catch (SkippableException $exception) {
+                $recoverService->recover($source, $writer, $exception, $data);
             }
         }
 

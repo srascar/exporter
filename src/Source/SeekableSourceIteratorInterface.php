@@ -15,6 +15,6 @@ namespace Exporter\Source;
  *
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
-interface SeekableSourceIteratorInterface extends \SeekableIterator
+interface SeekableSourceIteratorInterface extends SourceIteratorInterface, \SeekableIterator
 {
 }

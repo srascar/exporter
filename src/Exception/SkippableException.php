@@ -8,20 +8,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Exporter\Writer;
+namespace Exporter\Exception;
 
 /**
- * interface IndexedInterface
+ * Class SkipableException
  *
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
-interface IndexedWriterInterface extends WriterInterface
+class SkippableException extends \Exception
 {
-    public function getIndex();
-
-    public function resetIndex();
-
-    public function incrementIndex();
-
-    public function setIndex($index);
 }

@@ -10,15 +10,15 @@
 
 namespace Exporter\Writer;
 
+use Exporter\Exception\SkippableException;
+
 /**
- * Class IndexedWriter
+ * Class SkippableErrorWriter
  *
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
-class IndexedWriter implements IndexedWriterInterface
+class SkippableErrorWriter implements WriterInterface
 {
-    protected $index = 0;
-
     protected $writer;
 
     public function __construct(WriterInterface $writer)
@@ -26,42 +26,23 @@ class IndexedWriter implements IndexedWriterInterface
         $this->writer = $writer;
     }
 
-    public function getIndex()
-    {
-        return $this->index;
-    }
-
-    public function resetIndex()
-    {
-        return $this->index = 0;
-    }
-
-    public function incrementIndex()
-    {
-        ++$this->index;
-    }
-
-    public function setIndex($index)
-    {
-        $this->index = $index;
-    }
-
     public function open()
     {
-        $this->resetIndex();
         $this->writer->open();
     }
 
     /**
      * @param array $data
+     *
+     * @throws SkippableException
      */
     public function write(array $data)
     {
-        // Increment indexes before any operation
-        // to ensure they are updated before
-        // Exceptions are raised
-        $this->incrementIndex();
-        $this->writer->write($data);
+        try {
+            $this->writer->write($data);
+        } catch (\Exception $exception) {
+            throw new SkippableException("Write Exception", $exception->getCode(), $exception);
+        }
     }
 
     public function close()

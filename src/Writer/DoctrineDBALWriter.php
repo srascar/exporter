@@ -12,7 +12,7 @@ namespace Exporter\Writer;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
-use Exporter\Exception\SkipableException;
+use Exporter\Exception\SkippableException;
 
 /**
  * Class DoctrineDBALWriter
@@ -48,7 +48,7 @@ class DoctrineDBALWriter implements WriterInterface
      * @param array $data  The data to write
      * @param array $types Types of the inserted data
      *
-     * @throws DBALException
+     * @throws SkipableException
      */
     public function write(array $data, array $types = [])
     {
@@ -56,7 +56,7 @@ class DoctrineDBALWriter implements WriterInterface
             $this->conn->insert($this->tableName, $data, $types);
         } catch (DBALException $e) {
             $this->isSuccessful = false;
-            throw $e;
+            throw new SkippableException("Write Exception", $e->getCode(), $e);
         }
     }
 
