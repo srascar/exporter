@@ -123,10 +123,19 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
      */
     public function seek($position)
     {
-        if ($this->file instanceof \SplFileObject) {
-            $this->file->seek($this->hasHeaders ? ($position + 1) : $position);
-            $this->position = $position;
+        if (!($this->file instanceof \SplFileObject)) {
+            $this->initializeRead();
         }
+
+        if ($this->hasHeaders) {
+            $this->file->seek($position + 1);
+            $this->currentLine = $this->combineColumns($this->file->current());
+        } else {
+            $this->file->seek($position);
+            $this->currentLine = $this->file->current();
+        }
+
+        $this->position = $position;
     }
 
     /**
@@ -155,10 +164,10 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
             \SplFileObject::DROP_NEW_LINE
         );
         $this->file->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
+        $this->position = 0;
 
         if ($this->hasHeaders) {
             $this->columns  = $this->file->fgetcsv();
-            $this->position = 0;
         }
     }
 
@@ -173,6 +182,16 @@ class CsvSourceIterator implements SeekableSourceIteratorInterface
             throw new \RuntimeException(sprintf('An error occurred while reading the csv %s.', $this->file->getRealPath()));
         }
 
+        return $this->combineColumns($line);
+    }
+
+    /**
+     * @param array $line
+     *
+     * @return array|void
+     */
+    protected function combineColumns($line)
+    {
         if ($this->hasHeaders) {
             if ($line === array(null) || $line === null) {
                 $this->currentLine =  null;
