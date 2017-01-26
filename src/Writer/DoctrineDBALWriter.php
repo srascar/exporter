@@ -48,7 +48,7 @@ class DoctrineDBALWriter implements WriterInterface
      * @param array $data  The data to write
      * @param array $types Types of the inserted data
      *
-     * @throws SkipableException
+     * @throws DBALException
      */
     public function write(array $data, array $types = [])
     {
@@ -56,7 +56,7 @@ class DoctrineDBALWriter implements WriterInterface
             $this->conn->insert($this->tableName, $data, $types);
         } catch (DBALException $e) {
             $this->isSuccessful = false;
-            throw new SkipableException("Write Exception", $e->getCode(), $e);
+            throw $e;
         }
     }
 

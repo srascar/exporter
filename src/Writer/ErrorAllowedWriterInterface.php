@@ -15,8 +15,11 @@ namespace Exporter\Writer;
  *
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
-
-interface ErrorAllowedWriterInterface extends WriterInterface
+interface ErrorAllowedWriterInterface extends IndexedWriterInterface
 {
     public function getErrors();
+
+    public function getLastValidIndex();
+
+    public function recover();
 }

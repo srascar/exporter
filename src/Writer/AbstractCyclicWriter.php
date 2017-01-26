@@ -15,7 +15,7 @@ namespace Exporter\Writer;
  *
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
-abstract class CyclicWriter implements CyclicWriterInterface
+abstract class AbstractCyclicWriter implements CyclicWriterInterface
 {
     protected $cycleIndex = 0;
 
@@ -35,26 +35,6 @@ abstract class CyclicWriter implements CyclicWriterInterface
     abstract public function startCycle();
 
     abstract public function finishCycle();
-
-    public function getCycleIndex()
-    {
-        return $this->cycleIndex;
-    }
-
-    public function resetCycleIndex()
-    {
-        return $this->cycleIndex = 0;
-    }
-
-    public function incrementCycleIndex()
-    {
-        ++$this->cycleIndex;
-    }
-
-    public function setCycleIndex($cycleIndex)
-    {
-        $this->cycleIndex = $cycleIndex;
-    }
 
     public function open()
     {
@@ -89,14 +69,35 @@ abstract class CyclicWriter implements CyclicWriterInterface
         $this->writer->close();
     }
 
-    public function incrementIndex()
+    public function getCycleIndex()
     {
-        $this->writer->incrementIndex();
+        return $this->cycleIndex;
     }
+
+    public function incrementCycleIndex()
+    {
+        ++$this->cycleIndex;
+    }
+
+    public function setCycleIndex($cycleIndex)
+    {
+        $this->cycleIndex = $cycleIndex;
+    }
+
+    public function resetCycleIndex()
+    {
+        return $this->cycleIndex = 0;
+    }
+
 
     public function getIndex()
     {
         $this->writer->getIndex();
+    }
+
+    public function incrementIndex()
+    {
+        $this->writer->incrementIndex();
     }
 
     public function setIndex($index)
@@ -107,5 +108,10 @@ abstract class CyclicWriter implements CyclicWriterInterface
     public function resetIndex()
     {
         $this->writer->resetIndex();
+    }
+
+    public function getItemsPerCycle()
+    {
+        return $this->itemsPerCycle;
     }
 }

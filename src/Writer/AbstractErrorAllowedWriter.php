@@ -18,7 +18,7 @@ use Exporter\Exception\SkipableException;
  * @author Sylvain Rascar <sylvain.rascar@ekino.com>
  */
 
-class ErrorAllowedWriter implements ErrorAllowedWriterInterface
+abstract class AbstractErrorAllowedWriter extends IndexedWriter implements ErrorAllowedWriterInterface
 {
     protected $errors;
 
@@ -28,6 +28,10 @@ class ErrorAllowedWriter implements ErrorAllowedWriterInterface
     {
         $this->writer = $writer;
     }
+
+    abstract public function getLastValidIndex();
+
+    abstract public function recover();
 
     public function getErrors()
     {
@@ -41,16 +45,20 @@ class ErrorAllowedWriter implements ErrorAllowedWriterInterface
 
     /**
      * @param array $data
+     *
+     * @throws SkipableException
      */
     public function write(array $data)
     {
         try {
-            $this->writer->write($data);
-        } catch (SkipableException $skippedException) {
+            parent::write($data);
+        } catch (\Exception $exception) {
             $this->errors[] = [
                 'data'      => $data,
-                'exception' => $skippedException,
+                'exception' => $exception,
             ];
+
+            throw new SkipableException("Write Exception", $exception->getCode(), $exception);
         }
     }
 
