@@ -48,7 +48,7 @@ class DoctrineDBALWriter implements WriterInterface
      * @param array $data  The data to write
      * @param array $types Types of the inserted data
      *
-     * @throws SkipableException
+     * @throws SkippableException
      */
     public function write(array $data, array $types = [])
     {

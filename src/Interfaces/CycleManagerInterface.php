@@ -8,9 +8,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Exporter\Writer;
+namespace Exporter\Interfaces;
 
 use Exporter\Source\SourceIteratorInterface;
+use Exporter\Writer\WriterInterface;
 
 /**
  * interface CycleManagerInterface

@@ -11,20 +11,28 @@
 
 namespace Exporter;
 
+use Exporter\Exception\SkippableException;
 use Exporter\Interfaces\CycleManagerInterface;
+use Exporter\Interfaces\RecoverInterface;
 use Exporter\Source\SourceIteratorInterface;
 use Exporter\Writer\WriterInterface;
 
-class CyclicHandler
+class ContinuousCyclicHandler
 {
     /**
      * @param SourceIteratorInterface $source
      * @param WriterInterface         $writer
+     * @param RecoverInterface        $recoverService
      * @param CycleManagerInterface   $cyclicManager
      * @param int                     $itemsPerCycle
      */
-    public static function export(SourceIteratorInterface $source, WriterInterface $writer, CycleManagerInterface $cyclicManager, $itemsPerCycle)
-    {
+    public static function export(
+        SourceIteratorInterface $source,
+        WriterInterface $writer,
+        RecoverInterface $recoverService,
+        CycleManagerInterface $cyclicManager,
+        $itemsPerCycle
+    ) {
         $index = 0;
         $cycleIndex = 0;
 
@@ -36,7 +44,12 @@ class CyclicHandler
                 $cyclicManager->startCycle($source, $writer, $cycleIndex);
             }
 
-            $writer->write($data);
+            try {
+                $writer->write($data);
+            } catch (SkippableException $exception) {
+                $recoverService->recover($source, $writer, $exception, $data);
+            }
+
             ++$index;
 
             if (!($index%$itemsPerCycle)) {
