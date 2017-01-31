@@ -47,7 +47,7 @@ class ContinuousCyclicHandler
             try {
                 $writer->write($data);
             } catch (SkippableException $exception) {
-                $recoverService->recover($source, $writer, $exception, $data);
+                $recoverService->recover($source, $writer, $exception, $data, $index, $cycleIndex);
             }
 
             ++$index;

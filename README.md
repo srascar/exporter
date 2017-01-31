@@ -43,7 +43,6 @@ Handler::export($source, $writer);
 ### Advanced usage
 
 
-// Do some stuff here
 
 ```
 
