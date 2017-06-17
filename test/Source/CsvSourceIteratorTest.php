@@ -90,4 +90,24 @@ EOF;
         }
         $this->assertEquals(3, $i);
     }
+
+    public function testSeek()
+    {
+        $iterator = new CsvSourceIterator($this->filename);
+
+        $iterator->seek(1);
+        $value = $iterator->current();
+        $this->assertTrue(is_array($value));
+        $this->assertEquals('John 2', $value['firstname']);
+    }
+
+    public function testSeekNoHeaders()
+    {
+        $iterator = new CsvSourceIterator($this->filename, ',', '"', '\\', false);
+
+        $iterator->seek(1);
+        $value = $iterator->current();
+        $this->assertTrue(is_array($value));
+        $this->assertEquals('John 1', $value[0]);
+    }
 }
